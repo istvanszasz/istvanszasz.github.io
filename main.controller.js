@@ -20,19 +20,19 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
 
     $scope.iphone = function(){
         DataService.getData($http, 'http://www.g5info.se/php/chartiphone.csv').then(function(response){
-            $scope.parseInData(response, true);            
+            $scope.parseInData(response.data, true);            
         })
     }
 
     $scope.ipad = function(){
         DataService.getData($http, 'http://www.g5info.se/php/chart.csv').then(function(response){
-            $scope.parseInData(response, true);            
+            $scope.parseInData(response.data, true);            
         })
     }
 
     $scope.google = function(){
         DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing.csv').then(function(response){
-            $scope.parseInData(response, true);            
+            $scope.parseInData(response.data, true);            
         })
     }
 
