@@ -5,6 +5,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     $scope.gamesWanted = ['hidden city', 'mahjong journey', 'secret society', 'twin moons society', 'supermarket mania', 'pirates'];
     $scope.blacklistedWords = ['hd', 'full', '2'];
     $scope.useFilter = true;
+    $scope.isLoading = false;
 
     $scope.add = function() {
         var f = document.getElementById('file').files[0],
@@ -19,20 +20,26 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     }
 
     $scope.iphone = function(){
+        $scope.isLoading = true;
         DataService.getData($http, 'http://www.g5info.se/php/chartiphone.csv').then(function(response){
-            $scope.parseInData(response.data, true);            
+            $scope.parseInData(response.data);
+            $scope.isLoading = false;            
         })
     }
 
     $scope.ipad = function(){
+        $scope.isLoading = true;        
         DataService.getData($http, 'http://www.g5info.se/php/chart.csv').then(function(response){
-            $scope.parseInData(response.data, true);            
+            $scope.parseInData(response.data);
+            $scope.isLoading = false;
         })
     }
 
     $scope.google = function(){
+        $scope.isLoading = true;        
         DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing.csv').then(function(response){
-            $scope.parseInData(response.data, true);            
+            $scope.parseInData(response.data);
+            $scope.isLoading = false;
         })
     }
 
