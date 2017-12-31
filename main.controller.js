@@ -133,8 +133,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     {
                         quarter: 1,
                         data: firstQuarter,
-                        average: UtilService.average(_.map(firstQuarter, function(data){return data.placement})),
-                        median: UtilService.median(_.map(firstQuarter, function(data){return data.placement})),
+                        average: {value : UtilService.average(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
+                        median: {value: UtilService.median(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
                         min: _.min(_.pluck(firstQuarter, 'placement')),
                         max: _.max(_.pluck(firstQuarter, 'placement'))
                     }
@@ -146,8 +146,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     {
                         quarter: 2,
                         data: secondQuarter,
-                        average: UtilService.average(_.map(secondQuarter, function(data){return data.placement})),
-                        median: UtilService.median(_.map(secondQuarter, function(data){return data.placement})),                        
+                        average: {value : UtilService.average(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},
+                        median: {value: UtilService.median(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},                        
                         min: _.min(_.pluck(secondQuarter, 'placement')),
                         max: _.max(_.pluck(secondQuarter, 'placement'))
                     }
@@ -159,8 +159,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     {
                         quarter: 3,
                         data: thirdQuarter,
-                        average: UtilService.average(_.map(thirdQuarter, function(data){return data.placement})),
-                        median: UtilService.median(_.map(thirdQuarter, function(data){return data.placement})),                        
+                        average: {value : UtilService.average(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
+                        median: {value: UtilService.median(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
                         min: _.min(_.pluck(thirdQuarter, 'placement')),
                         max: _.max(_.pluck(thirdQuarter, 'placement'))
                     }
@@ -172,13 +172,16 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     {
                         quarter: 4,
                         data: fourthQuarter,
-                        average: UtilService.average(_.map(fourthQuarter, function(data){return data.placement})),
-                        median: UtilService.median(_.map(fourthQuarter, function(data){return data.placement})),                        
+                        average: {value : UtilService.average(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},                        
+                        median: {value: UtilService.median(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},
                         min: _.min(_.pluck(fourthQuarter, 'placement')),
                         max: _.max(_.pluck(fourthQuarter, 'placement'))
                     }
                 )
             }
+
+            setLowestQuarterForProperty(quarterData, 'average');
+            setLowestQuarterForProperty(quarterData, 'median');
 
             var oldData = _.find(game.sortedData, function(data){return data.country === quarterData.country && data.year === quarterData.year});
             if(oldData){
@@ -192,6 +195,13 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
             game.showChart = true;
             ChartService.addChart(game, country);
         }
+    }
+
+    function setLowestQuarterForProperty(quarterData, property){
+        var flattened = _(quarterData.quarters).chain().flatten().pluck(property).value();
+        var lowestAverageQuarterValue = _.min(flattened, _.property('value'));
+        var lowestQuarter = _.find(quarterData.quarters, function(quarter){ return quarter[property].value === lowestAverageQuarterValue.value});
+        lowestQuarter[property].isLowest = true;
     }
 
     $scope.showAll = function(game){

@@ -58,8 +58,8 @@
                         <tbody>
                             <tr ng-repeat="quarter in data.quarters">
                                 <td>{{quarter.quarter}}</td>
-                                <td>{{quarter.average}}</td>
-                                <td>{{quarter.median}}</td>
+                                <td ng-class="{lowestQuarter: quarter.average.isLowest == true}">{{quarter.average.value}}</td>
+                                <td ng-class="{lowestQuarter: quarter.median.isLowest == true}">{{quarter.median.value}}</td>
                                 <td>{{quarter.min}}</td>
                                 <td>{{quarter.max}}</td>
                             </tr>
