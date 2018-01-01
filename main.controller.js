@@ -199,8 +199,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
 
     function setLowestQuarterForProperty(quarterData, property){
         var flattened = _(quarterData.quarters).chain().flatten().pluck(property).value();
-        var lowestAverageQuarterValue = _.min(flattened, _.property('value'));
-        var lowestQuarter = _.find(quarterData.quarters, function(quarter){ return quarter[property].value === lowestAverageQuarterValue.value});
+        var lowestAverageQuarterValue = _.min(flattened, _.property('value')); //get lowest value for all quarters
+        var lowestQuarter = _.find(quarterData.quarters, function(quarter){ return quarter[property].value === lowestAverageQuarterValue.value}); //find the specific quarter
         lowestQuarter[property].isLowest = true;
     }
 
@@ -218,7 +218,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
         for(var i = 0; i < game.sortedData.length; i++){
             var countryData = game.sortedData[i];
             var flattened = _.flatten(_.map(countryData, _.values));
-            var lowestQuarterAverage = _.min(flattened, _.property('average'));
+            var lowestQuarterAverage = _.min(flattened, function(o){return o.average.value});
 
             if(lowestQuarterAverage){
                 lowestQuarterAverage.isLowest = true;
@@ -232,17 +232,17 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
             for(var j = 0; j < game.sortedData.length; j++){
                 var countryData = game.sortedData[j];
 
-                var quarterData = _.find(countryData.quarters, function(quarter){return quarter.quarter === i});
-                var foundInLowest = _.find(lowestQuarters, function(quarter){return quarter.quarter === i && quarter.average === quarterData.average && quarter.min === quarterData.min && quarter.max === quarterData.max});
+                var quarterData = _.find(countryData.quarters, function(q){return q.quarter === i});
+                var foundInLowest = _.find(lowestQuarters, function(q){return q.quarter === i && q.average.value === quarterData.average.value && q.min === quarterData.min && q.max === quarterData.max});
 
                 if(quarterData){
-                    quarter.values.push({value: quarterData.average, country: countryData.country, isLowest: foundInLowest != null});
+                    quarter.values.push({value: quarterData.average.value, country: countryData.country, isLowest: foundInLowest != null});
                 }
             }
 
             if(quarter.values.length > 0){ //only add quarters that have data
                 game.allData.push(quarter);                
             }
-        }        
+        }
     }
 });
