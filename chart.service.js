@@ -38,14 +38,19 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
         Chart.plugins.register(verticalLinePlugin);
 
     vm.addChart = function(game, country){
-        var ctx = document.getElementById(game.name).getContext('2d');
+        var gameCountry = _.find(countries, function(c){c.game === game.name});
 
-        countries.push(country);
-        var gameData = _.sortBy(country.gameData, function(data){return data.date});
+        if(!gameCountry){
+            gameCountry = {game : game, country : country};
+            countries.push(gameCountry);
+        }
+
+        var gameData = _.sortBy(gameCountry.country.gameData, function(data){return data.date});
         var dates = _.map(gameData, function(data){return moment(data.date).format('YYYY-MM-DD')});
         var verticalLines = getQuarterLines(dates);
-        var datasets = getDataForChart(countries);        
+        var datasets = getDataForChart(countries, country, game);        
 
+        var ctx = document.getElementById(game.name).getContext('2d');        
         chart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -65,19 +70,20 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
         });
     }
 
-    function getDataForChart(countries){
+    function getDataForChart(gameCountries, currentCountry, currentGame){
         var dataSet = [];
 
-        for(var i = 0; i < countries.length; i++){
-            var country = countries[i];
+        gameCountries = _.filter(gameCountries, function(gc){return gc.game.name === currentGame.name});
+        for(var i = 0; i < gameCountries.length; i++){
+            var gameCountry = gameCountries[i];
             
-            var gameData = _.sortBy(country.gameData, function(data){return data.date});
+            var gameData = _.sortBy(gameCountry.country.gameData, function(data){return data.date});
             var labels = _.map(gameData, function(data){return moment(data.date).format('YYYY-MM-DD')});
             var points = _.map(gameData, function(data){return data.placement});
 
             var color = UtilService.getRandomColor();
             var set = {
-                label: country.name,
+                label: gameCountry.country.name,
                 data: points,
                 fill:false,
                 backgroundColor: color,
