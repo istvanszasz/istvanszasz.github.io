@@ -20,8 +20,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     }
 
     $scope.iphone = function(){
-        //todo: load all old data first
-
+        ChartService.clearData();
         $scope.isLoading = true;
         DataService.getData($http, 'http://www.g5info.se/php/chartiphone_2017.csv').then(function(history){
             DataService.getData($http, 'http://www.g5info.se/php/chartiphone.csv').then(function(response){
@@ -33,7 +32,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     }
 
     $scope.ipad = function(){
-        $scope.isLoading = true;        
+        ChartService.clearData();        
+        $scope.isLoading = true;
         DataService.getData($http, 'http://www.g5info.se/php/chart_2017.csv').then(function(history){
             DataService.getData($http, 'http://www.g5info.se/php/chart.csv').then(function(response){
                 $scope.parseInData(history.data + response.data);
@@ -43,7 +43,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     }
 
     $scope.google = function(){
-        $scope.isLoading = true;        
+        ChartService.clearData();        
+        $scope.isLoading = true;
         DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing_2017.csv').then(function(history){
             DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing.csv').then(function(response){
                 $scope.parseInData(history.data + response.data);

@@ -119,4 +119,8 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
 
         return result;
     }
+
+    vm.clearData = function(){
+        countries = [];
+    }
 });
