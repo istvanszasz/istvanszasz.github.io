@@ -74,13 +74,12 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                 continue; //if no name or game not wanted (not in gamesWanted list), move on
             }
 
-            var trimmedName = name.replace('®', '');
-            name = trimmedName.replace('™', '');
+            var whiteListedGameName = _.find($scope.gamesWanted, function(wantedGame){return name.toLowerCase().indexOf(wantedGame) !== -1});
 
-            var game = _.find($scope.games, function(game){ return name.toLowerCase().startsWith(game.name.toLowerCase())});
+            var game = _.find($scope.games, function(game){ return whiteListedGameName.toLowerCase().startsWith(game.name.toLowerCase())});
 
             if(!game){
-                game = { name: name, countries : [], sortedData:[]}
+                game = { name: whiteListedGameName, countries : [], sortedData:[]}
                 $scope.games.push(game);
             }
 
