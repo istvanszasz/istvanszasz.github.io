@@ -20,6 +20,10 @@ angular.module('G5Data').service('DataService', function() {
 angular.module('G5Data').service('APIInterceptor', function() {
     var service = this;
     service.request = function(config) {
+        if(config.url.indexOf('http') === -1){
+            return config;
+        }
+
         config.url = 'https://cors-anywhere.herokuapp.com/' + config.url;
         return config;
     };
