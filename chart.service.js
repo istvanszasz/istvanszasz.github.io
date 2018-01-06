@@ -100,6 +100,7 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
         var quarterOneEnd = '03-31';
         var quarterTwoEnd = '06-30';
         var quarterThreeEnd = '09-30';
+        var quarterFourEnd = '12-31';
         
         var result = [];
 
@@ -107,7 +108,7 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
             var date = dates[i];
             date = date.slice(5); //remove year part of date string
 
-            if(date === quarterOneEnd || date === quarterTwoEnd || date === quarterThreeEnd){
+            if(date === quarterOneEnd || date === quarterTwoEnd || date === quarterThreeEnd || date == quarterFourEnd){
                 result.push(i + 1);
             }
         }
