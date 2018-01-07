@@ -1,4 +1,0 @@
-* skapa yeomanprojekt
-* den gröna markeringen för lägsta kvartal, visa alla om samma snittvärde
-* markera i charten var de olika kvartalen börjar
-* när man läser in data, klicka på ipad och kolla på charts, sen klicka på iphone och kolla charts, chartsen resetas inte mellan ipad och iphone

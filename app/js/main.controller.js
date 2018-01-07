@@ -5,6 +5,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     $scope.gamesWanted = ['hidden city', 'mahjong journey', 'secret society', 'twin moons society', 'supermarket mania', 'pirates'];
     $scope.blacklistedWords = ['hd', 'full', '2'];
     $scope.useFilter = true;
+    $scope.isLoading = false;
 
     $scope.add = function() {
         var f = document.getElementById('file').files[0],
@@ -19,20 +20,36 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     }
 
     $scope.iphone = function(){
-        DataService.getData($http, 'http://www.g5info.se/php/chartiphone.csv').then(function(response){
-            $scope.parseInData(response.data);            
+        ChartService.clearData();
+        $scope.isLoading = true;
+        DataService.getData($http, 'http://www.g5info.se/php/chartiphone_2017.csv').then(function(history){
+            DataService.getData($http, 'http://www.g5info.se/php/chartiphone.csv').then(function(response){
+
+                $scope.parseInData(history.data + response.data);
+                $scope.isLoading = false;
+            })
         })
     }
 
     $scope.ipad = function(){
-        DataService.getData($http, 'http://www.g5info.se/php/chart.csv').then(function(response){
-            $scope.parseInData(response.data);            
+        ChartService.clearData();        
+        $scope.isLoading = true;
+        DataService.getData($http, 'http://www.g5info.se/php/chart_2017.csv').then(function(history){
+            DataService.getData($http, 'http://www.g5info.se/php/chart.csv').then(function(response){
+                $scope.parseInData(history.data + response.data);
+                $scope.isLoading = false;
+            })
         })
     }
 
     $scope.google = function(){
-        DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing.csv').then(function(response){
-            $scope.parseInData(response.data);            
+        ChartService.clearData();        
+        $scope.isLoading = true;
+        DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing_2017.csv').then(function(history){
+            DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing.csv').then(function(response){
+                $scope.parseInData(history.data + response.data);
+                $scope.isLoading = false;
+            })
         })
     }
 
@@ -58,13 +75,12 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                 continue; //if no name or game not wanted (not in gamesWanted list), move on
             }
 
-            var trimmedName = name.replace('®', '');
-            name = trimmedName.replace('™', '');
+            var whiteListedGameName = _.find($scope.gamesWanted, function(wantedGame){return name.toLowerCase().indexOf(wantedGame) !== -1});
 
-            var game = _.find($scope.games, function(game){ return name.toLowerCase().startsWith(game.name.toLowerCase())});
+            var game = _.find($scope.games, function(game){ return whiteListedGameName.toLowerCase().startsWith(game.name.toLowerCase())});
 
             if(!game){
-                game = { name: name, countries : [], sortedData:[]}
+                game = { name: whiteListedGameName, countries : [], sortedData:[]}
                 $scope.games.push(game);
             }
 
@@ -103,7 +119,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     .sortBy('quarter')
                     .sortBy('date').value();
 
-        var years = _(gameData).chain().flatten().pluck('year').unique().value()
+        var years = _(gameData).chain().flatten().pluck('year').unique().value();
 
         _.each(years, function(year){
             if(!year){
@@ -126,8 +142,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     {
                         quarter: 1,
                         data: firstQuarter,
-                        average: UtilService.average(_.map(firstQuarter, function(data){return data.placement})),
-                        median: UtilService.median(_.map(firstQuarter, function(data){return data.placement})),
+                        average: {value : UtilService.average(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
+                        median: {value: UtilService.median(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
                         min: _.min(_.pluck(firstQuarter, 'placement')),
                         max: _.max(_.pluck(firstQuarter, 'placement'))
                     }
@@ -139,8 +155,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     {
                         quarter: 2,
                         data: secondQuarter,
-                        average: UtilService.average(_.map(secondQuarter, function(data){return data.placement})),
-                        median: UtilService.median(_.map(secondQuarter, function(data){return data.placement})),                        
+                        average: {value : UtilService.average(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},
+                        median: {value: UtilService.median(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},                        
                         min: _.min(_.pluck(secondQuarter, 'placement')),
                         max: _.max(_.pluck(secondQuarter, 'placement'))
                     }
@@ -152,8 +168,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     {
                         quarter: 3,
                         data: thirdQuarter,
-                        average: UtilService.average(_.map(thirdQuarter, function(data){return data.placement})),
-                        median: UtilService.median(_.map(thirdQuarter, function(data){return data.placement})),                        
+                        average: {value : UtilService.average(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
+                        median: {value: UtilService.median(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
                         min: _.min(_.pluck(thirdQuarter, 'placement')),
                         max: _.max(_.pluck(thirdQuarter, 'placement'))
                     }
@@ -165,13 +181,16 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     {
                         quarter: 4,
                         data: fourthQuarter,
-                        average: UtilService.average(_.map(fourthQuarter, function(data){return data.placement})),
-                        median: UtilService.median(_.map(fourthQuarter, function(data){return data.placement})),                        
+                        average: {value : UtilService.average(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},                        
+                        median: {value: UtilService.median(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},
                         min: _.min(_.pluck(fourthQuarter, 'placement')),
                         max: _.max(_.pluck(fourthQuarter, 'placement'))
                     }
                 )
             }
+
+            setLowestQuarterForProperty(quarterData, 'average');
+            setLowestQuarterForProperty(quarterData, 'median');
 
             var oldData = _.find(game.sortedData, function(data){return data.country === quarterData.country && data.year === quarterData.year});
             if(oldData){
@@ -187,6 +206,13 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
         }
     }
 
+    function setLowestQuarterForProperty(quarterData, property){
+        var flattened = _(quarterData.quarters).chain().flatten().pluck(property).value();
+        var lowestAverageQuarterValue = _.min(flattened, _.property('value')); //get lowest value for all quarters
+        var lowestQuarter = _.find(quarterData.quarters, function(quarter){ return quarter[property].value === lowestAverageQuarterValue.value}); //find the specific quarter
+        lowestQuarter[property].isLowest = true;
+    }
+
     $scope.showAll = function(game){
         game.allData = [];
         game.countries = _.sortBy(game.countries, function(country){ return country.name});
@@ -197,35 +223,45 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
         });
 
         var lowestQuarters = [];
-        //loop through every country and find the quarter with the lowest value
-        for(var i = 0; i < game.sortedData.length; i++){
-            var countryData = game.sortedData[i];
-            var flattened = _.flatten(_.map(countryData, _.values));
-            var lowestQuarterAverage = _.min(flattened, _.property('average'));
+        var years = _(game.sortedData).chain().flatten().pluck('year').unique().value();
+        var countries = _(game.sortedData).chain().flatten().pluck('country').unique().value();
 
-            if(lowestQuarterAverage){
-                lowestQuarterAverage.isLowest = true;
-                lowestQuarters.push(lowestQuarterAverage);
-            }
-        }
+        for(var k = 0; k < years.length; k++){
+            var year = years[k];
 
-        for(var i = 1; i < 5; i++){ //each quarter
-            var quarter = {quarter: i, values:[]};
+            //loop through every country and find the quarter with the lowest value
+            for(var l = 0; l < countries.length; l++){
+                var currentCountry = countries[l];
+                var dataForCountry = _.filter(game.sortedData, function(d){return d.country === currentCountry});
 
-            for(var j = 0; j < game.sortedData.length; j++){
-                var countryData = game.sortedData[j];
-
-                var quarterData = _.find(countryData.quarters, function(quarter){return quarter.quarter === i});
-                var foundInLowest = _.find(lowestQuarters, function(quarter){return quarter.quarter === i && quarter.average === quarterData.average && quarter.min === quarterData.min && quarter.max === quarterData.max});
-
-                if(quarterData){
-                    quarter.values.push({value: quarterData.average, country: countryData.country, isLowest: foundInLowest != null});
+                var flattened = _.flatten(_.map(dataForCountry, function(d){return d.quarters}));
+                var lowestQuarterAverage = _.min(flattened, function(o){return o.average.value});
+    
+                if(lowestQuarterAverage){
+                    lowestQuarterAverage.isLowest = true;
+                    lowestQuarters.push(lowestQuarterAverage);
                 }
             }
 
-            if(quarter.values.length > 0){ //only add quarters that have data
-                game.allData.push(quarter);                
+            var sortedDataForCurrentYear = _.filter(game.sortedData, function(data){ return data.year === year});            
+            for(var i = 1; i < 5; i++){ //each quarter
+                var quarter = {quarter: year + '-' + i, values:[]};
+
+                for(var j = 0; j < sortedDataForCurrentYear.length; j++){
+                    var countryData = sortedDataForCurrentYear[j];
+
+                    var quarterData = _.find(countryData.quarters, function(q){return q.quarter === i});
+                    var foundInLowest = _.find(lowestQuarters, function(q){return q.quarter === i && q.average.value === quarterData.average.value && q.min === quarterData.min && q.max === quarterData.max});
+
+                    if(quarterData){
+                        quarter.values.push({value: quarterData.average.value, country: countryData.country, isLowest: foundInLowest != null});
+                    }
+                }
+
+                if(quarter.values.length > 0){ //only add quarters that have data
+                    game.allData.push(quarter);                
+                }
             }
-        }        
+        }
     }
 });
