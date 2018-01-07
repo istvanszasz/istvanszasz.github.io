@@ -62,7 +62,8 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
             scales: {
                 yAxes: [{
                     ticks: {
-                        beginAtZero:true
+                        beginAtZero:true,
+                        reverse: true,
                     }
                 }]
             },
