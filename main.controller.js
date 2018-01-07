@@ -197,8 +197,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
             }
         })
 
-        setLowestQuarterForProperty(game.sortedData, 'average');
-        setLowestQuarterForProperty(game.sortedData, 'median');
+        setLowestQuarterFor(game.sortedData);
 
         if(addToChart){
             game.showChart = true;
@@ -206,7 +205,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
         }
     }
 
-    function setLowestQuarterForProperty(sortedData, property){
+    function setLowestQuarterFor(sortedData, property){
         var countries = _(sortedData).chain().flatten().pluck('country').unique().value();
 
         for(var l = 0; l < countries.length; l++){
@@ -214,10 +213,14 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
             var dataForCountry = _.filter(sortedData, function(d){return d.country === currentCountry});
 
             var flattened = _.flatten(_.map(dataForCountry, function(d){return d.quarters}));
-            var lowestQuarter = _.min(flattened, function(o){return o[property].value});
+            var lowestQuarterAverage = _.min(flattened, function(o){return o.average.value});
+            var lowestQuarterMedian = _.min(flattened, function(o){return o.median.value});
 
-            if(lowestQuarter){
-                lowestQuarter[property].isLowest = true;
+            if(lowestQuarterAverage){
+                lowestQuarterAverage.average.isLowest = true;
+            }
+            if(lowestQuarterMedian){
+                lowestQuarterMedian.median.isLowest = true;
             }
         }
     }

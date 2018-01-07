@@ -22,7 +22,7 @@
             <button ng-click="add()">Ladda fil</button>
         </div>
         <div>
-                <div style="float:right; margin-top:12px;">v1.2</div>
+                <div style="float:right; margin-top:12px;">v1.3</div>
             
             <button ng-click="iphone()" style="margin-right:10px;" class="btn btn-lg btn-primary">iPhone</button>
             <button ng-click="ipad()" style="margin-right:10px;" class="btn btn-lg btn-primary">iPad</button>
@@ -42,9 +42,7 @@
                     <canvas id="{{game.name}}"></canvas>
                 </div>
 
-                <div ng-repeat="data in game.sortedData" ng-show="game.showChart">
-                    <h4>{{data.year}} - {{data.country}}</h4>
-
+                <div ng-show="game.showChart">
                     <table class="table table-bordered table-striped table-sm">
                         <thead>
                             <tr>
@@ -55,9 +53,9 @@
                                 <th>Max</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody ng-repeat="data in game.sortedData" >
                             <tr ng-repeat="quarter in data.quarters">
-                                <td>{{quarter.quarter}}</td>
+                                <td>{{data.year}} - {{quarter.quarter}}</td>
                                 <td ng-class="{lowestQuarter: quarter.average.isLowest == true}">{{quarter.average.value}}</td>
                                 <td ng-class="{lowestQuarter: quarter.median.isLowest == true}">{{quarter.median.value}}</td>
                                 <td>{{quarter.min}}</td>
