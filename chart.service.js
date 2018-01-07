@@ -67,7 +67,7 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
                 }]
             },
             trendlineLinear: {
-                style: "rgba(0,0,0, .8)",
+                style: "rgba(243,4,4, .8)",
                 width: 2
             }
         }

@@ -209,6 +209,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
 
         if(addToChart){
             game.showChart = true;
+            game.allData = null; //hide table displaying averages for all countries
             ChartService.addChart(game, country);
         }
     }
@@ -287,5 +288,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                 }
             }
         }
+
+        game.sortedData = [];
+        game.showChart = false; //hide chart
     }
 });
