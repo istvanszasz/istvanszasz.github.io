@@ -189,9 +189,6 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                 )
             }
 
-            setLowestQuarterForProperty(quarterData, 'average');
-            setLowestQuarterForProperty(quarterData, 'median');
-
             var oldData = _.find(game.sortedData, function(data){return data.country === quarterData.country && data.year === quarterData.year});
             if(oldData){
                 oldData = quarterData;
@@ -200,17 +197,29 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
             }
         })
 
+        setLowestQuarterForProperty(game.sortedData, 'average');
+        setLowestQuarterForProperty(game.sortedData, 'median');
+
         if(addToChart){
             game.showChart = true;
             ChartService.addChart(game, country);
         }
     }
 
-    function setLowestQuarterForProperty(quarterData, property){
-        var flattened = _(quarterData.quarters).chain().flatten().pluck(property).value();
-        var lowestAverageQuarterValue = _.min(flattened, _.property('value')); //get lowest value for all quarters
-        var lowestQuarter = _.find(quarterData.quarters, function(quarter){ return quarter[property].value === lowestAverageQuarterValue.value}); //find the specific quarter
-        lowestQuarter[property].isLowest = true;
+    function setLowestQuarterForProperty(sortedData, property){
+        var countries = _(sortedData).chain().flatten().pluck('country').unique().value();
+
+        for(var l = 0; l < countries.length; l++){
+            var currentCountry = countries[l];
+            var dataForCountry = _.filter(sortedData, function(d){return d.country === currentCountry});
+
+            var flattened = _.flatten(_.map(dataForCountry, function(d){return d.quarters}));
+            var lowestQuarter = _.min(flattened, function(o){return o[property].value});
+
+            if(lowestQuarter){
+                lowestQuarter[property].isLowest = true;
+            }
+        }
     }
 
     $scope.showAll = function(game){
@@ -221,6 +230,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
             game.selectedCountry = country.name;
             $scope.prepareDataForCountry(game);
         });
+
+        game.selectedCountry = '';
 
         var lowestQuarters = [];
         var years = _(game.sortedData).chain().flatten().pluck('year').unique().value();
