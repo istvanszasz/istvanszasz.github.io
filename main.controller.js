@@ -70,8 +70,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
             var countryName = data[2];
             var date = data[3];
 
-            if($scope.useFilter && (!name || !_.find($scope.gamesWanted, function(gameWanted){ return name.toLowerCase().indexOf(gameWanted) !== -1})
-                     || _.find($scope.blacklistedWords, function(blacklistedWord){ return name.toLowerCase().indexOf(blacklistedWord) !== -1}))){
+            if(isGameUnwanted(name)){
                 continue; //if no name or game not wanted (not in gamesWanted list), move on
             }
 
@@ -99,6 +98,11 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
         }
     }
 
+    function isGameUnwanted(name){
+        return $scope.useFilter && (!name || !_.find($scope.gamesWanted, function(gameWanted){ return name.toLowerCase().indexOf(gameWanted) !== -1})
+        || _.find($scope.blacklistedWords, function(blacklistedWord){ return name.toLowerCase().indexOf(blacklistedWord) !== -1}));
+    }
+
     $scope.countrySelected = function(game){
         $scope.prepareDataForCountry(game, true);
     }
@@ -121,6 +125,11 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
 
         var years = _(gameData).chain().flatten().pluck('year').unique().value();
 
+        var quarterData = {
+            country:country.name,
+            // year: year,
+            quarters: []
+        };
         _.each(years, function(year){
             if(!year){
                 return;
@@ -130,12 +139,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
             var secondQuarter = _.filter(gameData, function(data) { return data.quarter === 2 && data.year === year});
             var thirdQuarter = _.filter(gameData, function(data) { return data.quarter === 3 && data.year === year});
             var fourthQuarter = _.filter(gameData, function(data) { return data.quarter === 4 && data.year === year});
-            
-            var quarterData = {
-                    country:country.name,
-                    year: year,
-                    quarters: []
-            };
+        
 
             if(firstQuarter.length > 0){
                 quarterData.quarters.push(
@@ -145,7 +149,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                         average: {value : UtilService.average(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
                         median: {value: UtilService.median(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
                         min: _.min(_.pluck(firstQuarter, 'placement')),
-                        max: _.max(_.pluck(firstQuarter, 'placement'))
+                        max: _.max(_.pluck(firstQuarter, 'placement')),
+                        year: year
                     }
                 )
             }
@@ -158,7 +163,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                         average: {value : UtilService.average(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},
                         median: {value: UtilService.median(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},                        
                         min: _.min(_.pluck(secondQuarter, 'placement')),
-                        max: _.max(_.pluck(secondQuarter, 'placement'))
+                        max: _.max(_.pluck(secondQuarter, 'placement')),
+                        year: year                        
                     }
                 )
             }
@@ -171,7 +177,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                         average: {value : UtilService.average(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
                         median: {value: UtilService.median(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
                         min: _.min(_.pluck(thirdQuarter, 'placement')),
-                        max: _.max(_.pluck(thirdQuarter, 'placement'))
+                        max: _.max(_.pluck(thirdQuarter, 'placement')),
+                        year: year                        
                     }
                 )
             }
@@ -184,7 +191,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                         average: {value : UtilService.average(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},                        
                         median: {value: UtilService.median(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},
                         min: _.min(_.pluck(fourthQuarter, 'placement')),
-                        max: _.max(_.pluck(fourthQuarter, 'placement'))
+                        max: _.max(_.pluck(fourthQuarter, 'placement')),
+                        year: year                        
                     }
                 )
             }
@@ -237,38 +245,40 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
         game.selectedCountry = '';
 
         var lowestQuarters = [];
-        var years = _(game.sortedData).chain().flatten().pluck('year').unique().value();
+        var years = _(game.sortedData).chain().flatten().pluck('quarters').flatten().pluck('year').unique().value();
         var countries = _(game.sortedData).chain().flatten().pluck('country').unique().value();
 
         for(var k = 0; k < years.length; k++){
             var year = years[k];
 
-            //loop through every country and find the quarter with the lowest value
-            for(var l = 0; l < countries.length; l++){
-                var currentCountry = countries[l];
-                var dataForCountry = _.filter(game.sortedData, function(d){return d.country === currentCountry});
-
-                var flattened = _.flatten(_.map(dataForCountry, function(d){return d.quarters}));
-                var lowestQuarterAverage = _.min(flattened, function(o){return o.average.value});
-    
-                if(lowestQuarterAverage){
-                    lowestQuarterAverage.isLowest = true;
-                    lowestQuarters.push(lowestQuarterAverage);
-                }
-            }
-
             var sortedDataForCurrentYear = _.filter(game.sortedData, function(data){ return data.year === year});            
             for(var i = 1; i < 5; i++){ //each quarter
                 var quarter = {quarter: year + '-' + i, values:[]};
 
-                for(var j = 0; j < sortedDataForCurrentYear.length; j++){
-                    var countryData = sortedDataForCurrentYear[j];
+                for(var l = 0; l < countries.length; l++){
+                    var currentCountry = countries[l];
+                    var dataForCountry = _.filter(game.sortedData, function(d){return d.country === currentCountry});
 
-                    var quarterData = _.find(countryData.quarters, function(q){return q.quarter === i});
+                    var flattened = _.flatten(_.map(dataForCountry, function(d){return d.quarters}));
+                    var lowestQuarterAverage = _.min(flattened, function(o){return o.average.value});
+        
+                    //if this is the lowest quarter, mark it
+                    if(lowestQuarterAverage){
+                        lowestQuarterAverage.isLowest = true;
+                        lowestQuarters.push(lowestQuarterAverage);
+                    }
+                
+                    var countryQuarters = _(dataForCountry).chain().flatten().pluck('quarters').flatten().unique().value();
+                    var quarterData = _.find(countryQuarters, function(q){return q.quarter === i && q.year === year});
+
+                    if(!quarterData){
+                        continue;
+                    }
+
                     var foundInLowest = _.find(lowestQuarters, function(q){return q.quarter === i && q.average.value === quarterData.average.value && q.min === quarterData.min && q.max === quarterData.max});
 
                     if(quarterData){
-                        quarter.values.push({value: quarterData.average.value, country: countryData.country, isLowest: foundInLowest != null});
+                        quarter.values.push({value: quarterData.average.value, country: dataForCountry.country, isLowest: foundInLowest != null});
                     }
                 }
 

@@ -43,7 +43,7 @@
                 </div>
 
                 <div ng-repeat="data in game.sortedData"  ng-show="game.showChart">
-                    <h4>{{data.year}} - {{data.country}}</h4>
+                    <h4>{{data.country}}</h4>
 
                     <table class="table table-bordered table-striped table-sm">
                         <thead>
@@ -57,7 +57,7 @@
                         </thead>
                         <tbody>
                             <tr ng-repeat="quarter in data.quarters">
-                                <td>{{quarter.quarter}}</td>
+                                <td>{{quarter.year}} - {{quarter.quarter}}</td>
                                 <td ng-class="{lowestQuarter: quarter.average.isLowest == true}">{{quarter.average.value}}</td>
                                 <td ng-class="{lowestQuarter: quarter.median.isLowest == true}">{{quarter.median.value}}</td>
                                 <td>{{quarter.min}}</td>
