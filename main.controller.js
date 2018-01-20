@@ -273,22 +273,26 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     var quarterData = _.find(countryQuarters, function(q){return q.quarter === i && q.year === year});
 
                     if(!quarterData){
+                        quarter.values.push({value: '', country: currentCountry, isLowest: false});                        
                         continue;
                     }
 
                     var foundInLowest = _.find(lowestQuarters, function(q){return q.quarter === i && q.average.value === quarterData.average.value && q.min === quarterData.min && q.max === quarterData.max});
 
                     if(quarterData){
-                        quarter.values.push({value: quarterData.average.value, country: dataForCountry.country, isLowest: foundInLowest != null});
+                        quarter.values.push({value: quarterData.average.value, country: currentCountry, isLowest: foundInLowest != null});
                     }
                 }
 
-                if(quarter.values.length > 0){ //only add quarters that have data
+                var listContainsData = _.any(quarter.values, function(item){ return item.value !== "" });
+                if(quarter.values.length > 0 && listContainsData){ //only add quarters that have data
                     game.allData.push(quarter);                
                 }
             }
         }
 
+
+        console.log(game.allData);
         game.sortedData = [];
         game.showChart = false; //hide chart
     }

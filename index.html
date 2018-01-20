@@ -22,7 +22,7 @@
             <button ng-click="add()">Ladda fil</button>
         </div>
         <div>
-            <div style="float:right; margin-top:12px;">v1.4</div>
+            <div style="float:right; margin-top:12px;">v1.5</div>
             
             <button ng-click="iphone()" style="margin-right:10px;" class="btn btn-lg btn-primary">iPhone</button>
             <button ng-click="ipad()" style="margin-right:10px;" class="btn btn-lg btn-primary">iPad</button>
@@ -30,7 +30,7 @@
             <label for="filter" style="margin-left:5%;">Visa enbart filtrerade spel</label>
             <input type="checkbox" name="filter" ng-model="useFilter" />
         </div>
-        <div ng-show="isLoading" class="loader" style="margin-top:40%;">Loading...</div>
+        <div ng-show="isLoading" class="loader" style="margin-top:20%;">Loading...</div>
         <div ng-show="!isLoading" style="margin-top:20px;" ng-repeat="game in games | orderBy: 'name'">
                 <h3>{{game.name}}</h3>
                 <select ng-model="game.selectedCountry" ng-change="countrySelected(game)">
