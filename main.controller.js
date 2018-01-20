@@ -6,6 +6,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     $scope.blacklistedWords = ['hd', 'full', '2'];
     $scope.useFilter = true;
     $scope.isLoading = false;
+    var above1000 = '>1000';
 
     $scope.add = function() {
         var f = document.getElementById('file').files[0],
@@ -273,7 +274,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     var quarterData = _.find(countryQuarters, function(q){return q.quarter === i && q.year === year});
 
                     if(!quarterData){
-                        quarter.values.push({value: '', country: currentCountry, isLowest: false});                        
+                        //No data found, means that the value is above 999
+                        quarter.values.push({value: above1000, country: currentCountry, isLowest: false});                        
                         continue;
                     }
 
@@ -284,7 +286,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     }
                 }
 
-                var listContainsData = _.any(quarter.values, function(item){ return item.value !== "" });
+                var listContainsData = _.any(quarter.values, function(item){ return item.value !== above1000 });
                 if(quarter.values.length > 0 && listContainsData){ //only add quarters that have data
                     game.allData.push(quarter);                
                 }
