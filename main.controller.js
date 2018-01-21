@@ -1,12 +1,16 @@
 var app = angular.module('G5Data',[]);
 
-app.controller("MainController", function($scope, $http, ChartService, UtilService, DataService){
+app.controller("MainController", function($scope, $http, $q, ChartService, UtilService, DataService){
 
     $scope.gamesWanted = ['hidden city', 'mahjong journey', 'secret society', 'twin moons society', 'supermarket mania', 'pirates'];
     $scope.blacklistedWords = ['hd', 'full', '2'];
     $scope.useFilter = true;
     $scope.isLoading = false;
     var above1000 = '>1000';
+    var currentPlatform;
+    var IPHONE = 'IPHONE';
+    var IPAD = 'IPAD';
+    var GOOGLE = 'GOOGLE';
 
     $scope.add = function() {
         var f = document.getElementById('file').files[0],
@@ -21,6 +25,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     }
 
     $scope.iphone = function(){
+        currentPlatform = IPHONE;
         ChartService.clearData();
         $scope.isLoading = true;
         DataService.getData($http, 'http://www.g5info.se/php/chartiphone_2017.csv').then(function(history){
@@ -33,6 +38,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     }
 
     $scope.ipad = function(){
+        currentPlatform = IPAD;        
         ChartService.clearData();        
         $scope.isLoading = true;
         DataService.getData($http, 'http://www.g5info.se/php/chart_2017.csv').then(function(history){
@@ -44,7 +50,8 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     }
 
     $scope.google = function(){
-        ChartService.clearData();        
+        currentPlatform = GOOGLE;        
+        ChartService.clearData();
         $scope.isLoading = true;
         DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing_2017.csv').then(function(history){
             DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing.csv').then(function(response){
@@ -52,6 +59,131 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                 $scope.isLoading = false;
             })
         })
+    }
+
+    function iphonefree(country){
+        return $q(function(resolve){
+
+            $scope.isLoading = true;
+            DataService.getData($http, 'http://www.g5info.se/php/chartiphone_free_2017.csv').then(function(history){
+                DataService.getData($http, 'http://www.g5info.se/php/chartiphone_free.csv').then(function(response){
+
+                    var game = parseFreeDownloadsData(history.data + response.data, country);
+                    $scope.isLoading = false;
+
+                    resolve(game);
+                })
+            })
+        })        
+    }
+
+    function ipadfree(country){
+        return $q(function(resolve){
+
+            $scope.isLoading = true;
+            DataService.getData($http, 'http://www.g5info.se/php/chart_free_2017.csv').then(function(history){
+                DataService.getData($http, 'http://www.g5info.se/php/chart_free.csv').then(function(response){
+
+                    var game = parseFreeDownloadsData(history.data + response.data, country);
+                    $scope.isLoading = false;
+
+                    resolve(game);
+                })
+            })
+        })        
+    }
+
+    function googlefree(country){
+        return $q(function(resolve){
+
+            $scope.isLoading = true;
+            DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topselling_free_2017.csv').then(function(history){
+                DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topselling_free.csv').then(function(response){
+
+                    var game = parseFreeDownloadsData(history.data + response.data, country);
+                    $scope.isLoading = false;
+
+                    resolve(game);
+                })
+            })
+        })
+    }
+
+    $scope.addDownloads = function(game){
+        if(!game || !game.showDownloads || !game.selectedCountry){
+            return;
+        }
+
+        if(currentPlatform === IPHONE){
+            var country = game.selectedCountry;
+            iphonefree(country).then(function(currentGame){
+                $scope.prepareDataForCountry(currentGame, true, true);
+            });
+        }
+
+        if(currentPlatform === IPAD){
+            var country = game.selectedCountry;
+            ipadfree(country).then(function(currentGame){
+                $scope.prepareDataForCountry(currentGame, true, true);
+            });
+        }
+
+        if(currentPlatform === GOOGLE){
+            var country = game.selectedCountry;
+            googlefree(country).then(function(currentGame){
+                $scope.prepareDataForCountry(currentGame, true, true);
+            });
+        }
+    }
+
+    function parseFreeDownloadsData(data, selectedCountry){
+        var lines, lineNumber, length;
+        // $scope.games = [];
+        lines = data.split('\n');
+        lineNumber = 0;
+        
+        for (var i = lines.length - 1; i >= 0; i--) {
+            l = lines[i];
+
+            lineNumber++;
+            data = l.split(';');
+
+            var name = data[0];
+            var place = data[1];
+            var countryName = data[2];
+
+            if(countryName !== selectedCountry){
+                continue;
+            }
+
+            countryName = countryName + '_free';
+
+            var date = data[3];
+
+            if(isGameUnwanted(name)){
+                continue; //if no name or game not wanted (not in gamesWanted list), move on
+            }
+
+            var whiteListedGameName = _.find($scope.gamesWanted, function(wantedGame){return name.toLowerCase().indexOf(wantedGame) !== -1});
+
+            var game = _.find($scope.games, function(game){ return whiteListedGameName.toLowerCase().startsWith(game.name.toLowerCase())});
+
+            if(!game){
+                game = { name: whiteListedGameName, countries : [], sortedData:[]}
+                $scope.games.push(game);
+            }
+
+            var country = _.find(game.countries, function(country){ return country.name === countryName});
+
+            if(!country){
+                country = {name : countryName, gameData: []};
+                game.countries.push(country);
+            }
+
+            country.gameData.push({placement: parseInt(place), date: new Date(date)});
+        }
+
+        return game;
     }
 
     $scope.parseInData = function(data, applyChanges){
@@ -105,11 +237,16 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
     }
 
     $scope.countrySelected = function(game){
+        if(game.showDownloads){
+            ChartService.clearData();
+            game.showDownloads = false;
+        }
         $scope.prepareDataForCountry(game, true);
     }
 
-    $scope.prepareDataForCountry = function(game, addToChart){
-        var country = _.find(game.countries, function(c){ return c.name === game.selectedCountry});
+    $scope.prepareDataForCountry = function(game, addToChart, isDownloads){
+        var currentCountry = isDownloads ? game.selectedCountry + '_free' : game.selectedCountry;
+        var country = _.find(game.countries, function(c){ return c.name === currentCountry});
 
         var gameData = country.gameData;
 
@@ -274,7 +411,7 @@ app.controller("MainController", function($scope, $http, ChartService, UtilServi
                     var quarterData = _.find(countryQuarters, function(q){return q.quarter === i && q.year === year});
 
                     if(!quarterData){
-                        //No data found, means that the value is above 999
+                        //No data found, means that the value is above 1000
                         quarter.values.push({value: above1000, country: currentCountry, isLowest: false});                        
                         continue;
                     }

@@ -22,7 +22,7 @@
             <button ng-click="add()">Ladda fil</button>
         </div>
         <div>
-            <div style="float:right; margin-top:12px;">v1.5</div>
+            <div style="float:right; margin-top:12px;">v1.6</div>
             
             <button ng-click="iphone()" style="margin-right:10px;" class="btn btn-lg btn-primary">iPhone</button>
             <button ng-click="ipad()" style="margin-right:10px;" class="btn btn-lg btn-primary">iPad</button>
@@ -36,7 +36,9 @@
                 <select ng-model="game.selectedCountry" ng-change="countrySelected(game)">
                     <option ng-repeat="country in game.countries | orderBy: 'name'" value="{{country.name}}">{{country.name}}</option>
                 </select>
-                <button ng-click="showAll(game)" style="margin-left:10px;">Visa alla länder samlat</button>            
+                <button ng-click="showAll(game)" style="margin-left:10px;">Visa alla länder samlat</button>
+                <label for="showdownloads" style="margin-left:5%;">Visa nedladdningar</label>                
+                <input type="checkbox" name="showdownloads" ng-model="game.showDownloads" ng-click="addDownloads(game)" /> 
 
                 <div style="width:100%;" ng-show="game.showChart">
                     <canvas id="{{game.name}}"></canvas>
