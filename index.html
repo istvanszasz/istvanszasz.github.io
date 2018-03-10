@@ -22,7 +22,7 @@
             <button ng-click="add()">Ladda fil</button>
         </div>
         <div>
-            <div style="float:right; margin-top:12px;">v1.6</div>
+            <div style="float:right; margin-top:12px;">v1.7</div>
             
             <button ng-click="iphone()" style="margin-right:10px;" class="btn btn-lg btn-primary">iPhone</button>
             <button ng-click="ipad()" style="margin-right:10px;" class="btn btn-lg btn-primary">iPad</button>
@@ -37,8 +37,8 @@
                     <option ng-repeat="country in game.countries | orderBy: 'name'" value="{{country.name}}">{{country.name}}</option>
                 </select>
                 <button ng-click="showAll(game)" style="margin-left:10px;">Visa alla länder samlat</button>
-                <label for="showdownloads" style="margin-left:5%;">Visa nedladdningar</label>                
-                <input type="checkbox" name="showdownloads" ng-model="game.showDownloads" ng-click="addDownloads(game)" /> 
+                <!-- <label for="showdownloads" style="margin-left:5%;">Visa nedladdningar</label>                
+                <input type="checkbox" name="showdownloads" ng-model="game.showDownloads" ng-click="addDownloads(game)" />  -->
 
                 <div style="width:100%;" ng-show="game.showChart">
                     <canvas id="{{game.name}}"></canvas>
@@ -62,8 +62,8 @@
                                 <td>{{quarter.year}} - {{quarter.quarter}}</td>
                                 <td ng-class="{lowestQuarter: quarter.average.isLowest == true}">{{quarter.average.value}}</td>
                                 <td ng-class="{lowestQuarter: quarter.median.isLowest == true}">{{quarter.median.value}}</td>
-                                <td>{{quarter.min}}</td>
-                                <td>{{quarter.max}}</td>
+                                <td ng-class="{lowestQuarter: quarter.min.isLowest == true}">{{quarter.min.value}}</td>
+                                <td ng-class="{lowestQuarter: quarter.max.isLowest == true}">{{quarter.max.value}}</td>
                             </tr>
                         </tbody>
                     </table>

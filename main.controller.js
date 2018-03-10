@@ -286,8 +286,8 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
                         data: firstQuarter,
                         average: {value : UtilService.average(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
                         median: {value: UtilService.median(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
-                        min: _.min(_.pluck(firstQuarter, 'placement')),
-                        max: _.max(_.pluck(firstQuarter, 'placement')),
+                        min: {value: _.min(_.pluck(firstQuarter, 'placement')), isLowest : false},
+                        max: {value: _.max(_.pluck(firstQuarter, 'placement')), isLowest : false},
                         year: year
                     }
                 )
@@ -300,8 +300,8 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
                         data: secondQuarter,
                         average: {value : UtilService.average(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},
                         median: {value: UtilService.median(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},                        
-                        min: _.min(_.pluck(secondQuarter, 'placement')),
-                        max: _.max(_.pluck(secondQuarter, 'placement')),
+                        min: {value: _.min(_.pluck(secondQuarter, 'placement')), isLowest : false},
+                        max: {value: _.max(_.pluck(secondQuarter, 'placement')), isLowest : false},
                         year: year                        
                     }
                 )
@@ -314,8 +314,8 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
                         data: thirdQuarter,
                         average: {value : UtilService.average(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
                         median: {value: UtilService.median(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
-                        min: _.min(_.pluck(thirdQuarter, 'placement')),
-                        max: _.max(_.pluck(thirdQuarter, 'placement')),
+                        min: {value: _.min(_.pluck(thirdQuarter, 'placement')), isLowest : false},
+                        max: {value: _.max(_.pluck(thirdQuarter, 'placement')), isLowest : false},
                         year: year                        
                     }
                 )
@@ -328,8 +328,8 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
                         data: fourthQuarter,
                         average: {value : UtilService.average(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},                        
                         median: {value: UtilService.median(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},
-                        min: _.min(_.pluck(fourthQuarter, 'placement')),
-                        max: _.max(_.pluck(fourthQuarter, 'placement')),
+                        min: {value: _.min(_.pluck(fourthQuarter, 'placement')), isLowest : false},
+                        max: {value: _.max(_.pluck(fourthQuarter, 'placement')), isLowest : false},
                         year: year                        
                     }
                 )
@@ -358,16 +358,24 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
         for(var l = 0; l < countries.length; l++){
             var currentCountry = countries[l];
             var dataForCountry = _.filter(sortedData, function(d){return d.country === currentCountry});
-
             var flattened = _.flatten(_.map(dataForCountry, function(d){return d.quarters}));
+
             var lowestQuarterAverage = _.min(flattened, function(o){return o.average.value});
             var lowestQuarterMedian = _.min(flattened, function(o){return o.median.value});
+            var lowestQuarterMin = _.min(flattened, function(o){return o.min.value});
+            var lowestQuarterMax = _.min(flattened, function(o){return o.max.value});
 
             if(lowestQuarterAverage){
                 lowestQuarterAverage.average.isLowest = true;
             }
             if(lowestQuarterMedian){
                 lowestQuarterMedian.median.isLowest = true;
+            }
+            if(lowestQuarterMin){
+                lowestQuarterMin.min.isLowest = true;
+            }
+            if(lowestQuarterMax){
+                lowestQuarterMax.max.isLowest = true;
             }
         }
     }
