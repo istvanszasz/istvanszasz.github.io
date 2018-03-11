@@ -348,7 +348,7 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
         if(addToChart){
             game.showChart = true;
             game.allData = null; //hide table displaying averages for all countries
-            ChartService.addChart(game, country);
+            ChartService.addChart(game, country, $scope);
         }
     }
 

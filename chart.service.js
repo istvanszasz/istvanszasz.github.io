@@ -37,7 +37,7 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
       
     Chart.plugins.register(verticalLinePlugin);
 
-    vm.addChart = function(game, country){
+    vm.addChart = function(game, country, scope){
         var gameCountry = _.find(countries, function(c){c.game === game.name});
 
         if(!gameCountry){
@@ -50,29 +50,37 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
         var verticalLines = getQuarterLines(dates);
         var datasets = getDataForChart(countries, country, game);        
 
-        var ctx = document.getElementById(game.name).getContext('2d');        
-        chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets: datasets
-        },
-        lineAtIndex: verticalLines,
-        options: {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero:true,
-                        reverse: true,
-                    }
-                }]
+        if(!scope.chart){
+            var ctx = document.getElementById(game.name).getContext('2d');
+            chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: datasets
             },
-            trendlineLinear: {
-                style: "rgba(243,4,4, .8)",
-                width: 2
+            lineAtIndex: verticalLines,
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:true,
+                            reverse: true,
+                        }
+                    }]
+                },
+                trendlineLinear: {
+                    style: "rgba(243,4,4, .8)",
+                    width: 2
+                }
             }
+            });
+
+            scope.chart = chart;
+        } else {
+            scope.chart.data.labels = dates;
+            scope.chart.data.datasets = datasets;
         }
-        });
+        scope.chart.update();
     }
 
     function getDataForChart(gameCountries, currentCountry, currentGame){
