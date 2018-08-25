@@ -223,13 +223,19 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
                 game.countries.push(country);
             }
 
-            country.gameData.push({placement: parseInt(place), date: new Date(date)});
+            if(!isInArray(country.gameData, new Date(date))){
+                country.gameData.push({placement: parseInt(place), date: new Date(date)});
+            }
         }
 
         if(applyChanges){
             $scope.$apply();
         }
     }
+
+    function isInArray(array, value) {
+        return !!array.find(item => {return item.date.getTime() == value.getTime()});
+      }
 
     function isGameUnwanted(name){
         return $scope.useFilter && (!name || !_.find($scope.gamesWanted, function(gameWanted){ return name.toLowerCase().indexOf(gameWanted) !== -1})
@@ -277,7 +283,6 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
             var secondQuarter = _.filter(gameData, function(data) { return data.quarter === 2 && data.year === year});
             var thirdQuarter = _.filter(gameData, function(data) { return data.quarter === 3 && data.year === year});
             var fourthQuarter = _.filter(gameData, function(data) { return data.quarter === 4 && data.year === year});
-        
 
             if(firstQuarter.length > 0){
                 quarterData.quarters.push(
