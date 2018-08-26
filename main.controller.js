@@ -2,7 +2,7 @@ var app = angular.module('G5Data',[]);
 
 app.controller("MainController", function($scope, $http, $q, ChartService, UtilService, DataService){
 
-    $scope.gamesWanted = ['hidden city', 'mahjong journey', 'secret society', 'twin moons society', 'supermarket mania', 'pirates'];
+    $scope.gamesWanted = ['hidden city', 'mahjong journey', 'secret society', 'twin moons society', 'supermarket mania', 'pirates', 'homicide squad', 'survivors'];
     $scope.blacklistedWords = ['hd', 'full', '2'];
     $scope.useFilter = true;
     $scope.isLoading = false;
@@ -30,7 +30,6 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
         $scope.isLoading = true;
         DataService.getData($http, 'http://www.g5info.se/php/chartiphone_2017.csv').then(function(history){
             DataService.getData($http, 'http://www.g5info.se/php/chartiphone.csv').then(function(response){
-
                 $scope.parseInData(history.data + response.data);
                 $scope.isLoading = false;
             })
@@ -285,59 +284,19 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
             var fourthQuarter = _.filter(gameData, function(data) { return data.quarter === 4 && data.year === year});
 
             if(firstQuarter.length > 0){
-                quarterData.quarters.push(
-                    {
-                        quarter: 1,
-                        data: firstQuarter,
-                        average: {value : UtilService.average(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
-                        median: {value: UtilService.median(_.map(firstQuarter, function(data){return data.placement})), isLowest : false},
-                        min: {value: _.min(_.pluck(firstQuarter, 'placement')), isLowest : false},
-                        max: {value: _.max(_.pluck(firstQuarter, 'placement')), isLowest : false},
-                        year: year
-                    }
-                )
+                quarterData.quarters.push(arrangeQuarterData(1, firstQuarter, year));
             }
 
             if(secondQuarter.length > 0){
-                quarterData.quarters.push(
-                    {
-                        quarter: 2,
-                        data: secondQuarter,
-                        average: {value : UtilService.average(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},
-                        median: {value: UtilService.median(_.map(secondQuarter, function(data){return data.placement})), isLowest : false},                        
-                        min: {value: _.min(_.pluck(secondQuarter, 'placement')), isLowest : false},
-                        max: {value: _.max(_.pluck(secondQuarter, 'placement')), isLowest : false},
-                        year: year                        
-                    }
-                )
+                quarterData.quarters.push(arrangeQuarterData(2, secondQuarter, year));
             }
 
             if(thirdQuarter.length > 0){
-                quarterData.quarters.push(
-                    {
-                        quarter: 3,
-                        data: thirdQuarter,
-                        average: {value : UtilService.average(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
-                        median: {value: UtilService.median(_.map(thirdQuarter, function(data){return data.placement})), isLowest : false},
-                        min: {value: _.min(_.pluck(thirdQuarter, 'placement')), isLowest : false},
-                        max: {value: _.max(_.pluck(thirdQuarter, 'placement')), isLowest : false},
-                        year: year                        
-                    }
-                )
+                quarterData.quarters.push(arrangeQuarterData(3, thirdQuarter, year));
             }
 
             if(fourthQuarter.length > 0){
-                quarterData.quarters.push(
-                    {
-                        quarter: 4,
-                        data: fourthQuarter,
-                        average: {value : UtilService.average(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},                        
-                        median: {value: UtilService.median(_.map(fourthQuarter, function(data){return data.placement})), isLowest : false},
-                        min: {value: _.min(_.pluck(fourthQuarter, 'placement')), isLowest : false},
-                        max: {value: _.max(_.pluck(fourthQuarter, 'placement')), isLowest : false},
-                        year: year                        
-                    }
-                )
+                quarterData.quarters.push(arrangeQuarterData(4, fourthQuarter, year));
             }
 
             var oldData = _.find(game.sortedData, function(data){return data.country === quarterData.country && data.year === quarterData.year});
@@ -354,6 +313,18 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
             game.showChart = true;
             game.allData = null; //hide table displaying averages for all countries
             ChartService.addChart(game, country, $scope);
+        }
+    }
+
+    function arrangeQuarterData(quarter, quarterData, year){
+        return {
+            quarter: quarter,
+            data: quarterData,
+            average: {value : UtilService.average(_.map(quarterData, function(data){return data.placement})), isLowest : false},                        
+            median: {value: UtilService.median(_.map(quarterData, function(data){return data.placement})), isLowest : false},
+            min: {value: _.min(_.pluck(quarterData, 'placement')), isLowest : false},
+            max: {value: _.max(_.pluck(quarterData, 'placement')), isLowest : false},
+            year: year                        
         }
     }
 
