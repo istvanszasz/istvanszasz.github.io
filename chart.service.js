@@ -2,13 +2,19 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
 
     var vm = this;
     var countries = [];
-    var chart;
 
     const verticalLinePlugin = {
         getLinePosition: function (chart, pointIndex) {
+            try
+            {
             const meta = chart.getDatasetMeta(0); // first dataset is used to discover X coordinate of a point
             const data = meta.data;
-            return data[pointIndex]._model.x;
+            var pos = data[pointIndex]._model.x;
+            return pos;
+            }
+            catch(e){
+                return 0;
+            }
         },
         renderVerticalLine: function (chartInstance, pointIndex) {
             const lineLeftOffset = this.getLinePosition(chartInstance, pointIndex);
@@ -38,6 +44,11 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
     Chart.plugins.register(verticalLinePlugin);
 
     vm.addChart = function(game, country, scope){
+
+        if(!scope.chart){
+            scope.chart = [];
+        }
+
         var gameCountry = _.find(countries, function(c){c.game === game.name});
 
         if(!gameCountry){
@@ -50,7 +61,7 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
         var verticalLines = getQuarterLines(dates);
         var datasets = getDataForChart(countries, country, game);        
 
-        if(!scope.chart){
+        if(!scope.chart[game.name]){
             var ctx = document.getElementById(game.name).getContext('2d');
             chart = new Chart(ctx, {
             type: 'line',
@@ -75,12 +86,12 @@ angular.module('G5Data').service('ChartService', function(UtilService) {
             }
             });
 
-            scope.chart = chart;
+            scope.chart[game.name] = chart;
         } else {
-            scope.chart.data.labels = dates;
-            scope.chart.data.datasets = datasets;
+            scope.chart[game.name].data.labels = dates;
+            scope.chart[game.name].data.datasets = datasets;
         }
-        scope.chart.update();
+        scope.chart[game.name].update();
     }
 
     function getDataForChart(gameCountries, currentCountry, currentGame){
