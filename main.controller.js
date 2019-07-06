@@ -2,7 +2,7 @@ var app = angular.module('G5Data',[]);
 
 app.controller("MainController", function($scope, $http, $q, ChartService, UtilService, DataService){
 
-    $scope.gamesWanted = ['hidden city', 'mahjong journey', 'secret society', 'twin moons society', 'supermarket mania', 'pirates', 'homicide squad', 'survivors'];
+    $scope.gamesWanted = ['hidden city', 'mahjong journey', 'secret society', 'twin moons society', 'supermarket mania', 'pirates', 'homicide squad', 'survivors', 'jewels of rome'];
     $scope.blacklistedWords = ['hd', 'full', '2'];
     $scope.useFilter = true;
     $scope.isLoading = false;
@@ -28,51 +28,49 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
         currentPlatform = IPHONE;
         ChartService.clearData();
         $scope.isLoading = true;
-        DataService.getData($http, 'http://www.g5info.se/php/chartiphone_2017.csv').then(function(history){
-            DataService.getData($http, 'http://www.g5info.se/php/chartiphone.csv').then(function(response){
-                $scope.parseInData(history.data + response.data);
-                $scope.isLoading = false;
-            })
-        })
+
+        downloadAllData('http://www.g5info.se/php/chartiphone', $scope.years)
+        .then(function(response){
+            $scope.parseInData(response);
+            $scope.isLoading = false;
+        });
     }
 
     $scope.ipad = function(){
         currentPlatform = IPAD;        
         ChartService.clearData();        
         $scope.isLoading = true;
-        DataService.getData($http, 'http://www.g5info.se/php/chart_2017.csv').then(function(history){
-            DataService.getData($http, 'http://www.g5info.se/php/chart.csv').then(function(response){
-                $scope.parseInData(history.data + response.data);
-                $scope.isLoading = false;
-            })
-        })
+
+        downloadAllData('http://www.g5info.se/php/chart', $scope.years)
+        .then(function(response){
+            $scope.parseInData(response);
+            $scope.isLoading = false;
+        });
     }
 
     $scope.google = function(){
         currentPlatform = GOOGLE;        
         ChartService.clearData();
         $scope.isLoading = true;
-        DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing_2017.csv').then(function(history){
-            DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topgrossing.csv').then(function(response){
-                $scope.parseInData(history.data + response.data);
-                $scope.isLoading = false;
-            })
-        })
+
+        downloadAllData('http://www.g5info.se/php/chart_googleplay_topgrossing', $scope.years)
+        .then(function(response){
+            $scope.parseInData(response);
+            $scope.isLoading = false;
+        });
     }
 
     function iphonefree(country){
         return $q(function(resolve){
 
             $scope.isLoading = true;
-            DataService.getData($http, 'http://www.g5info.se/php/chartiphone_free_2017.csv').then(function(history){
-                DataService.getData($http, 'http://www.g5info.se/php/chartiphone_free.csv').then(function(response){
+            downloadAllData('http://www.g5info.se/php/chartiphone_free', $scope.years)
+            .then(function(response){
+                var game = parseFreeDownloadsData(response, country);
+                $scope.isLoading = false;
 
-                    var game = parseFreeDownloadsData(history.data + response.data, country);
-                    $scope.isLoading = false;
-
-                    resolve(game);
-                })
-            })
+                resolve(game);
+            });
         })        
     }
 
@@ -80,15 +78,13 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
         return $q(function(resolve){
 
             $scope.isLoading = true;
-            DataService.getData($http, 'http://www.g5info.se/php/chart_free_2017.csv').then(function(history){
-                DataService.getData($http, 'http://www.g5info.se/php/chart_free.csv').then(function(response){
+            downloadAllData('http://www.g5info.se/php/chart_free', $scope.years)
+            .then(function(response){
+                var game = parseFreeDownloadsData(response, country);
+                $scope.isLoading = false;
 
-                    var game = parseFreeDownloadsData(history.data + response.data, country);
-                    $scope.isLoading = false;
-
-                    resolve(game);
-                })
-            })
+                resolve(game);
+            });
         })        
     }
 
@@ -96,16 +92,41 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
         return $q(function(resolve){
 
             $scope.isLoading = true;
-            DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topselling_free_2017.csv').then(function(history){
-                DataService.getData($http, 'http://www.g5info.se/php/chart_googleplay_topselling_free.csv').then(function(response){
+            downloadAllData('http://www.g5info.se/php/chart_googleplay_topselling_free', $scope.years)
+            .then(function(response){
+                var game = parseFreeDownloadsData(response, country);
+                $scope.isLoading = false;
 
-                    var game = parseFreeDownloadsData(history.data + response.data, country);
-                    $scope.isLoading = false;
-
-                    resolve(game);
-                })
-            })
+                resolve(game);
+            });
         })
+    }
+
+    // For all historic year, and current year, download
+    // all game data.
+    function downloadAllData(url){
+        var years = getAllHistoryYears();
+        return $q(function(outerResolve, outerReject) {
+            var allData;
+            $q(function(resolve, reject) {
+                for(let i = 0; i < years.length; i++){
+                    let year = years[i];
+        
+                    DataService.getData($http, url + '_' + year + '.csv').then(function(response){
+                        allData = allData + response.data;
+
+                        if(i === years.length - 1){
+                            resolve(allData);
+                        }
+                    });
+                }
+            }).then(function(data) {
+                DataService.getData($http, url + '.csv').then(function(response){
+                    var result = data + response.data;
+                    outerResolve(result);
+                });
+            });;
+        });
     }
 
     $scope.addDownloads = function(game){
@@ -186,45 +207,51 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
     }
 
     $scope.parseInData = function(data, applyChanges){
-        var lines, lineNumber, length;
-        $scope.games = [];
-        lines = data.split('\n');
-        lineNumber = 0;
-        
-        for (var i = lines.length - 1; i >= 0; i--) {
-            l = lines[i];
+        try
+        {
+            var lines, lineNumber, length;
+            $scope.games = [];
+            lines = data.split('\n');
+            lineNumber = 0;
+            
+            for (var i = lines.length - 1; i >= 0; i--) {
+                l = lines[i];
 
-            lineNumber++;
-            data = l.split(';');
+                lineNumber++;
+                data = l.split(';');
 
-            var name = data[0];
-            var place = data[1];
-            var countryName = data[2];
-            var date = data[3];
+                var name = data[0];
+                var place = data[1];
+                var countryName = data[2];
+                var date = data[3];
 
-            if(isGameUnwanted(name)){
-                continue; //if no name or game not wanted (not in gamesWanted list), move on
+                if(isGameUnwanted(name)){
+                    continue; //if no name or game not wanted (not in gamesWanted list), move on
+                }
+
+                var whiteListedGameName = _.find($scope.gamesWanted, function(wantedGame){return name.toLowerCase().indexOf(wantedGame) !== -1});
+
+                var game = _.find($scope.games, function(game){ return whiteListedGameName.toLowerCase().startsWith(game.name.toLowerCase())});
+
+                if(!game){
+                    game = { name: whiteListedGameName, countries : [], sortedData:[]}
+                    $scope.games.push(game);
+                }
+
+                var country = _.find(game.countries, function(country){ return country.name === countryName});
+
+                if(!country){
+                    country = {name : countryName, gameData: []};
+                    game.countries.push(country);
+                }
+
+                if(!isInArray(country.gameData, new Date(date))){
+                    country.gameData.push({placement: parseInt(place), date: new Date(date)});
+                }
             }
-
-            var whiteListedGameName = _.find($scope.gamesWanted, function(wantedGame){return name.toLowerCase().indexOf(wantedGame) !== -1});
-
-            var game = _.find($scope.games, function(game){ return whiteListedGameName.toLowerCase().startsWith(game.name.toLowerCase())});
-
-            if(!game){
-                game = { name: whiteListedGameName, countries : [], sortedData:[]}
-                $scope.games.push(game);
-            }
-
-            var country = _.find(game.countries, function(country){ return country.name === countryName});
-
-            if(!country){
-                country = {name : countryName, gameData: []};
-                game.countries.push(country);
-            }
-
-            if(!isInArray(country.gameData, new Date(date))){
-                country.gameData.push({placement: parseInt(place), date: new Date(date)});
-            }
+        }
+        catch(exception){
+            console.log(exception);
         }
 
         if(applyChanges){
@@ -252,6 +279,10 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
     $scope.prepareDataForCountry = function(game, addToChart, isDownloads){
         var currentCountry = isDownloads ? game.selectedCountry + '_free' : game.selectedCountry;
         var country = _.find(game.countries, function(c){ return c.name === currentCountry});
+
+        if(country == null){
+            return;
+        }
 
         var gameData = country.gameData;
 
@@ -284,19 +315,19 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
             var fourthQuarter = _.filter(gameData, function(data) { return data.quarter === 4 && data.year === year});
 
             if(firstQuarter.length > 0){
-                quarterData.quarters.push(arrangeQuarterData(1, firstQuarter, year));
+                quarterData.quarters.push(createQuarterData(1, firstQuarter, year));
             }
 
             if(secondQuarter.length > 0){
-                quarterData.quarters.push(arrangeQuarterData(2, secondQuarter, year));
+                quarterData.quarters.push(createQuarterData(2, secondQuarter, year));
             }
 
             if(thirdQuarter.length > 0){
-                quarterData.quarters.push(arrangeQuarterData(3, thirdQuarter, year));
+                quarterData.quarters.push(createQuarterData(3, thirdQuarter, year));
             }
 
             if(fourthQuarter.length > 0){
-                quarterData.quarters.push(arrangeQuarterData(4, fourthQuarter, year));
+                quarterData.quarters.push(createQuarterData(4, fourthQuarter, year));
             }
 
             var oldData = _.find(game.sortedData, function(data){return data.country === quarterData.country && data.year === quarterData.year});
@@ -307,7 +338,7 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
             }
         })
 
-        setLowestQuarterFor(game.sortedData);
+        assignLowestQuarterFor(game.sortedData);
 
         if(addToChart){
             game.showChart = true;
@@ -316,7 +347,7 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
         }
     }
 
-    function arrangeQuarterData(quarter, quarterData, year){
+    function createQuarterData(quarter, quarterData, year){
         return {
             quarter: quarter,
             data: quarterData,
@@ -328,7 +359,7 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
         }
     }
 
-    function setLowestQuarterFor(sortedData, property){
+    function assignLowestQuarterFor(sortedData, property){
         var countries = _(sortedData).chain().flatten().pluck('country').unique().value();
 
         for(var l = 0; l < countries.length; l++){
@@ -418,5 +449,19 @@ app.controller("MainController", function($scope, $http, $q, ChartService, UtilS
         console.log(game.allData);
         game.sortedData = [];
         game.showChart = false; //hide chart
+    }
+
+    function getAllHistoryYears(){
+        var result = [];
+        var year = 2017;
+
+        result.push(year);
+
+        while(year < new Date().getFullYear() - 1){
+            year++;
+            result.push(year);
+        }
+
+        return result;
     }
 });
